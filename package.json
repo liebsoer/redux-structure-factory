@@ -1,0 +1,49 @@
+{
+  "name": "redux-structure-factory",
+  "version": "0.0.1",
+  "description": "Factory module to create a redux structure",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liebsoer/redux-structure-factory.git"
+  },
+  "keywords": [
+    "redux",
+    "factory",
+    "structure",
+    "functional",
+    "configurable",
+    "reducer",
+    "action",
+    "state",
+    "state filter",
+    "action creator"
+  ],
+  "author": "Sören Liebich",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liebsoer/redux-structure-factory/issues"
+  },
+  "homepage": "https://github.com/liebsoer/redux-structure-factory#readme",
+  "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-loader": "^7.0.0",
+    "babel-preset-env": "^1.5.1",
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "webpack": "^2.5.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.23.0"
+  }
+}
