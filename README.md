@@ -11,7 +11,7 @@ Factory module to create a redux structure
 # Usage
 
 ## Container configuration
-**JSON configuration**
+**Configuration object**
 ```javascript
 {
   'name': 'Some Name',
@@ -26,7 +26,8 @@ Factory module to create a redux structure
   }
 }
 ```
-** Description **
+
+**Description**
 
 | Field Name | Type | Description |
 | - | - | - |
