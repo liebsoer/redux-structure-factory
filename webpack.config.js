@@ -1,5 +1,3 @@
-/* eslint-env node, es6 */
-
 const path = require('path');
 // const webpack = require('webpack');
 
