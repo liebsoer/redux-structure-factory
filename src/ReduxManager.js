@@ -48,7 +48,7 @@ class ReduxManager {
 
         if(!parent || (parent && override)){
             newContainer.state = () => _.cloneDeep(this.store.getState()._self);
-            newContainer.slices = () => _.cloneDeep(this.store.getState()._slices || {});
+            newContainer._slices = () => _.cloneDeep(this.store.getState()._slices || {});
             this.topContainer = newContainer;
         } else {
             parent.addSubContainer(newContainer);
