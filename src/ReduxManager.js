@@ -1,7 +1,12 @@
+/*
 import * as _ from 'lodash';
 import * as Redux from 'redux';
 import ReduxStructureContainer from './ReduxStructureContainer';
+*/
 
+const _ = require('lodash');
+const Redux = require('redux');
+const ReduxStructureContainer = require('./ReduxStructureContainer').Container;
 
 /**
  * Manager for creating and managing a redux store.
@@ -16,10 +21,13 @@ class ReduxManager {
      * @memberof ReduxManager
      */
     constructor() {
-        this.store = Redux.createStore((state => state),
+        let enhancer = null;
+        if(typeof window !== 'undefined'){
             // Enables redux dev tools. See https://github.com/zalmoxisus/redux-devtools-extension
-            window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-        );
+            enhancer = window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__();
+        }
+
+        this.store = Redux.createStore((state => state), enhancer);
     }
 
     /**
@@ -33,7 +41,7 @@ class ReduxManager {
      * 
      * @memberof ReduxManager
      */
-    createManager(name, config, parent, override) {
+    createContainer(name, config, parent, override) {
         if (!this.testConfig(name, config, parent, override)) {
             return;
         }
@@ -47,8 +55,8 @@ class ReduxManager {
         const newContainer = new ReduxStructureContainer(name, config, parent);
 
         if(!parent || (parent && override)){
-            newContainer.state = () => _.cloneDeep(this.store.getState()._self);
-            newContainer._slices = () => _.cloneDeep(this.store.getState()._slices || {});
+            newContainer.stateHandler = () => _.cloneDeep(this.store.getState()._self || {});
+            newContainer._slicesHandler = () => _.cloneDeep(this.store.getState()._slices || {});
             this.topContainer = newContainer;
         } else {
             parent.addSubContainer(newContainer);
@@ -100,10 +108,10 @@ class ReduxManager {
         for (const actionKey of Object.keys(config.actions)) {
             const actionName = config.actions[actionKey].actionName;
             const creator = config.actions[actionKey].actionCreator;
-            const reducer = config.actions[actionKey].reducer;
+            const reducer = config.actions[actionKey].reducerAction;
 
-            if (!/^[A-Z_]+$/.test(actionKey)) {
-                console.error(name, ':', '\"ACTION_KEY\" must match \"^[A-Z_]+$\" but was \"' + actionKey + '\"');
+            if (!/^[A-Z_][A-Z0-9_]*$/.test(actionKey)) {
+                console.error(name, ':', '\"ACTION_KEY\" must match \"^[A-Z_][A-Z0-9_]*$\" but was \"' + actionKey + '\"');
                 isValid = false;
             }
 
@@ -133,17 +141,19 @@ class ReduxManager {
             }
         }
 
-        for (const filterKey of Object.keys(config.filter)) {
-            const filter = config.filter[filterKey];
+        if(config.filter){
+            for (const filterKey of Object.keys(config.filter)) {
+                const filter = config.filter[filterKey];
 
-            if (!/[a-zA-Z$_][a-zA-Z0-9$_]*/g.test(filterKey)) {
-                console.error(name, ':', 'Filter key name must start with a character, $ or _ and can be optionally followed by alphanumeric characters, $ and _ but was \"' + filterKey + '\"');
-                isValid = false;
-            }
+                if (!/[a-zA-Z$_][a-zA-Z0-9$_]*/g.test(filterKey)) {
+                    console.error(name, ':', 'Filter key name must start with a character, $ or _ and can be optionally followed by alphanumeric characters, $ and _ but was \"' + filterKey + '\"');
+                    isValid = false;
+                }
 
-            if (typeof filter !== 'function') {
-                console.error(name, ':', 'Value for filter key \"' + filterKey + '\" is not a function!');
-                isValid = false;
+                if (typeof filter !== 'function') {
+                    console.error(name, ':', 'Value for filter key \"' + filterKey + '\" is not a function!');
+                    isValid = false;
+                }
             }
         }
 
@@ -159,10 +169,12 @@ class ReduxManager {
      * @memberof ReduxManager
      */
     updateStore() {
-        this.store.replaceReducer(this.topContainer.reducer);
+        this.store.replaceReducer(this.topContainer.reducer.bind(this.topContainer));
     }
 
 }
 
-const Factory = new ReduxManager();
-export default Factory;
+exports.Manager = new ReduxManager();
+
+// const Manager = new ReduxManager();
+// export default Manager;

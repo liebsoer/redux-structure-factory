@@ -1,4 +1,5 @@
-import * as Redux from 'redux';
+// import * as Redux from 'redux';
+const Redux = require('redux');
 
 /**
  * 
@@ -7,6 +8,13 @@ import * as Redux from 'redux';
  */
 class ReduxStructureContainer {
 
+    get state() {
+        return this.stateHandler();
+    }
+
+    get _slices() {
+        return this._slicesHandler();
+    }
 
     /**
      * 
@@ -30,29 +38,6 @@ class ReduxStructureContainer {
     }
 
     /**
-     * 
-     * 
-     * @readonly
-     * 
-     * @memberof ReduxStructureContainer
-     */
-    get state(){
-        if(!this.parent){
-            return {};
-        }
-
-        return (this.parent.slices[this.name] || {})._self || {};
-    }
-
-    get _slices(){
-        if(!this.parent){
-            return {};
-        }
-
-        return (this.parent._slices[this.name] || {})._slices || {};
-    }
-
-    /**
      * Creates an instance of ReduxStructureContainer.
      * @param {any} name 
      * @param {any} config 
@@ -71,14 +56,33 @@ class ReduxStructureContainer {
 
         this.filter = {};
 
-        this.defaultState = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {};
+        this.defaultState = {};
+        this.defaultState._self = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {}
+
+        console.log(this.defaultState);
+
+        this.stateHandler = () => {
+            if(!this.parent){
+                return {};
+            }
+
+            return (this.parent.slices[this.name] || {})._self || {};
+        };
+
+        this._slicesHandler = () => {
+            if(!this.parent){
+                return {};
+            }
+
+            return (this.parent._slices[this.name] || {})._slices || {};
+        };
 
         this.actions = {};
         this.actionCreators = {};
         this.reducerActions = {};
         this.mapping = {};
 
-        for(const actionKey of config.actions){
+        for(const actionKey of Object.keys(config.actions)){
             const fktName = actionKey
                 .replace(/[\W_]+/g, ' ')
                 .replace(
@@ -88,7 +92,10 @@ class ReduxStructureContainer {
             ;
 
             const actionName = config.actions[actionKey].actionName;
-            const actionCreator = config.actions[actionKey].actionCreator.bind(null);
+            const actionCreator = (...args) => Object.assign({}, {
+                'type': actionName,
+                'payload': config.actions[actionKey].actionCreator.apply(null, args)
+            });
             const reducerAction = config.actions[actionKey].reducerAction.bind(null);
 
             this.actions[actionKey] = actionName;
@@ -103,7 +110,7 @@ class ReduxStructureContainer {
 
         if(config.filter){
             for(const filterKey of Object.keys(config.filter)) {
-                this.filter[filterKey] = config.filter[filterKey].bind(null);
+                this.filter[filterKey] = (...args) => config.filter[filterKey].apply(null, this.state, args);
             }
         }
     }
@@ -135,7 +142,7 @@ class ReduxStructureContainer {
      * @memberof ReduxStructureContainer
      */
     reducerHandler(state = this.defaultState, action){
-        return this.mapping[action.type].reducerAction(state, action) || state;
+        return ((this.mapping[action.type] || {}).reducerAction || (() => {}))(state, action) || state;
     }
 
     /**
@@ -147,9 +154,10 @@ class ReduxStructureContainer {
      * 
      * @memberof ReduxStructureContainer
      */
-    reducer(state = this.defaultState, action){
-        if(!action || !this.mapping[action.type] || typeof this.mapping[action.type].reducerAction !== 'function'){
-            return state;
+    reducer(state, action){
+        if(!action || !this.mapping[action.type] || typeof this.mapping[action.type].reducerAction !== 'function'){ 
+            console.log(`No action "${action.type}" found. Returning`, JSON.stringify(this.defaultState));
+            return this.defaultState;
         }
         
         const slicesReducer = {};
@@ -157,14 +165,28 @@ class ReduxStructureContainer {
             slicesReducer[childName] = this.slices[childName].reducer;
         });
 
-        const reducer = Redux.combineReducers({
-            '_self': this.reducerHandler,
-            '_slices': Redux.combineReducers(slicesReducer)
-        });
+        console.log('sliceReducer', slicesReducer);
 
-        return reducer;
+        let reducer;
+
+        if(Object.keys(slicesReducer).length){
+            reducer = Redux.combineReducers({
+                '_self': this.reducerHandler.bind(this),
+                '_slices': Redux.combineReducers(slicesReducer)
+            });
+        } else {
+            reducer = Redux.combineReducers({
+                '_self': this.reducerHandler.bind(this)
+            });
+
+            // reducer = this.reducerHandler.bind(this);
+        }
+
+        return reducer(state, action);
     }
 }
 
-const Container = ReduxStructureContainer;
-export default Container;
+exports.Container = ReduxStructureContainer;
+
+// const Container = ReduxStructureContainer;
+// export default Container;
