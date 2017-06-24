@@ -57,9 +57,7 @@ class ReduxStructureContainer {
         this.filter = {};
 
         this.defaultState = {};
-        this.defaultState._self = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {}
-
-        console.log(this.defaultState);
+        this.defaultState._self = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {};
 
         this.stateHandler = () => {
             if(!this.parent){
@@ -91,7 +89,7 @@ class ReduxStructureContainer {
                 )
             ;
 
-            const actionName = config.actions[actionKey].actionName;
+            const actionName = this.prefix + config.actions[actionKey].actionName;
             const actionCreator = (...args) => Object.assign({}, {
                 'type': actionName,
                 'payload': config.actions[actionKey].actionCreator.apply(null, args)
@@ -142,47 +140,77 @@ class ReduxStructureContainer {
      * @memberof ReduxStructureContainer
      */
     reducerHandler(state = this.defaultState, action){
+        if(!action || !this.mapping[action.type] || typeof this.mapping[action.type].reducerAction !== 'function'){ 
+            if(!/^@@redux/.test(action.type)){
+                console.log(this.name, `No action "${action.type}" found. Returning`, JSON.stringify(this.defaultState));
+            }
+            return this.defaultState;
+        }
+
         return ((this.mapping[action.type] || {}).reducerAction || (() => {}))(state, action) || state;
     }
 
     /**
      * 
      * 
-     * @param {any} [state=this.defaultState] 
+     * @param {any} [stat] 
      * @param {any} action 
      * @returns 
      * 
      * @memberof ReduxStructureContainer
      */
     reducer(state, action){
-        if(!action || !this.mapping[action.type] || typeof this.mapping[action.type].reducerAction !== 'function'){ 
-            console.log(`No action "${action.type}" found. Returning`, JSON.stringify(this.defaultState));
-            return this.defaultState;
-        }
-        
+        // TODO: Reducer not calculated correctly
+
         const slicesReducer = {};
         Object.keys(this.slices).forEach(childName => {
-            slicesReducer[childName] = this.slices[childName].reducer;
-        });
+            slicesReducer[childName] = this.slices[childName].reducer.bind(this);
+        }, this);
 
-        console.log('sliceReducer', slicesReducer);
+        // console.log(this.name, new Date().getTime(), action.type, 'sliceReducer', JSON.stringify(slicesReducer), new Error().stack);
 
+        const slicesKeys = Object.keys(slicesReducer);
+        const slicesLength = slicesKeys.length;
         let reducer;
 
-        if(Object.keys(slicesReducer).length){
+        if(slicesLength === 1){
+            const slice = this.slices[slicesKeys[0]];
+            const sliceAction = (state, action) => {
+                if(action.type !== slice.actions[slicesKeys[0]]){
+                    return {
+                        [slicesKeys[0]]: slice.defaultState
+                    };
+                }
+
+                return {
+                    [slicesKeys[0]]: slicesReducer[slicesKeys[0]](state, action).bind(this)
+                };
+            };
+
+
+            reducer = Redux.combineReducers({
+                '_self': this.reducerHandler.bind(this),
+                '_slices': sliceAction
+            });
+        } else if (slicesLength > 1) {
             reducer = Redux.combineReducers({
                 '_self': this.reducerHandler.bind(this),
                 '_slices': Redux.combineReducers(slicesReducer)
             });
         } else {
-            reducer = Redux.combineReducers({
-                '_self': this.reducerHandler.bind(this)
-            });
+            // console.log('No slices');
+            // reducer = Redux.combineReducers({
+            //     '_self': this.reducerHandler.bind(this)
+            // });
 
-            // reducer = this.reducerHandler.bind(this);
+            reducer = (state, action) => {
+                return {
+                    '_self': this.reducerHandler.call(this, state, action)
+                };
+            };
         }
 
-        return reducer(state, action);
+        return reducer(state || this.defaultState, action);
     }
 }
 

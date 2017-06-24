@@ -11,14 +11,14 @@ const ReduxStructureContainer = require('./ReduxStructureContainer').Container;
 /**
  * Manager for creating and managing a redux store.
  * 
- * @class ReduxManager
+ * @class ReduxFactory
  */
-class ReduxManager {
+class ReduxFactory {
 
     /**
-     * Creates an instance of ReduxManager.
+     * Creates an instance of ReduxFactory.
      * 
-     * @memberof ReduxManager
+     * @memberof ReduxFactory
      */
     constructor() {
         let enhancer = null;
@@ -39,7 +39,7 @@ class ReduxManager {
      * @param {boolean} override (optional) If true child container will be replaced if existing. Children of the child container will be removed!
      * @returns Created instance
      * 
-     * @memberof ReduxManager
+     * @memberof ReduxFactory
      */
     createContainer(name, config, parent, override) {
         if (!this.testConfig(name, config, parent, override)) {
@@ -64,7 +64,7 @@ class ReduxManager {
 
         this.updateStore();
 
-        return this.topContainer;
+        return newContainer;
     }
 
 
@@ -76,7 +76,7 @@ class ReduxManager {
      * @param {ReduxStructureContainer|boolean} parent
      * @returns 
      * 
-     * @memberof ReduxManager
+     * @memberof ReduxFactory
      */
     testConfig(name, config, parent, override) {
         if (typeof name !== 'string') {
@@ -166,7 +166,7 @@ class ReduxManager {
      * Attention: Replaces the current store reducer!
      * 
      * 
-     * @memberof ReduxManager
+     * @memberof ReduxFactory
      */
     updateStore() {
         this.store.replaceReducer(this.topContainer.reducer.bind(this.topContainer));
@@ -174,7 +174,7 @@ class ReduxManager {
 
 }
 
-exports.Manager = new ReduxManager();
+exports.Factory = new ReduxFactory();
 
-// const Manager = new ReduxManager();
-// export default Manager;
+// const Factory = new ReduxFactory();
+// export default Factory;

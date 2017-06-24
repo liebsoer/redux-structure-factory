@@ -1,5 +1,5 @@
-// import {Manager} from './src/ReduxManager';
-const {Manager} = require('./src/ReduxManager');
+// import {Factory} from './src/ReduxManager';
+const {Factory} = require('./src/ReduxFactory');
 
 
 const config1 = {
@@ -15,26 +15,53 @@ const config1 = {
                 'para': para
             }),
             'reducerAction': (state, action) => {
+                console.log(state);
                 state[action.type] = action.payload;
             }
         }
     }
 };
+const config2 = {
+    'label': 'Test 2 container',
+    'defaultState': {
+        'counter': 0
+    },
+    'actions': {
+        'ACTION2': {
+            'actionName': 'Action 2',
+            'actionCreator': (inc = 1) => Object.assign({}, {
+                'inc': inc
+            }),
+            'reducerAction': (state, action) => {
+                state.counter = action.payload.inc;
+            }
+        }
+    }
+};
 
-const c1 = Manager.createContainer('test1', config1);
+const c1 = Factory.createContainer('test1', config1);
 
-console.log('c1', JSON.stringify(c1.state));
-console.log('state', JSON.stringify(Manager.store.getState()));
+const c1a1 = c1.actionCreators.action1('123456789');
+// console.log('c1a1', JSON.stringify(c1a1, null, 2));
+Factory.store.dispatch(c1a1);
+
+// const c1a2 = c1.actionCreators.action1();
+// Factory.store.dispatch(c1a2);
+
+// console.log('state', JSON.stringify(Factory.store.getState(), null, 2));
 console.log('\n\n########################################\n\n');
 
-Manager.store.dispatch(c1.actionCreators.action1('123456789'));
+/*
+const c2 = Factory.createContainer('test2', config2, c1);
 
-console.log('c1', JSON.stringify(c1.state));
-console.log('state', JSON.stringify(Manager.store.getState()));
+console.log('c2a1', JSON.stringify(Factory.store.getState()));
+console.log('\n\n########################################\n\n');
+Factory.store.dispatch(c2.actionCreators.action2());
+
+console.log('state', JSON.stringify(Factory.store.getState()));
 console.log('\n\n########################################\n\n');
 
-Manager.store.dispatch(c1.actionCreators.action1());
+Factory.store.dispatch(c2.actionCreators.action2(5));
 
-console.log('c1', JSON.stringify(c1.state));
-console.log('state', JSON.stringify(Manager.store.getState()));
-console.log('\n\n########################################\n\n');
+console.log('state', JSON.stringify(Factory.store.getState()));
+*/
