@@ -1,5 +1,6 @@
 // import * as Redux from 'redux';
-const Redux = require('redux');
+// const Redux = require('redux');
+const {Utils} = require('./ReduxUtils');
 
 /**
  * 
@@ -56,8 +57,7 @@ class ReduxStructureContainer {
 
         this.filter = {};
 
-        this.defaultState = {};
-        this.defaultState._self = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {};
+        this.defaultState = (config.defaultState && config.defaultState.constructor === Object) ? Object.assign({}, config.defaultState) : {};
 
         this.stateHandler = () => {
             if(!this.parent){
@@ -142,9 +142,9 @@ class ReduxStructureContainer {
     reducerHandler(state = this.defaultState, action){
         if(!action || !this.mapping[action.type] || typeof this.mapping[action.type].reducerAction !== 'function'){ 
             if(!/^@@redux/.test(action.type)){
-                console.log(this.name, `No action "${action.type}" found. Returning`, JSON.stringify(this.defaultState));
+                console.debug(this.name, `No action "${action.type}" found. Returning`, JSON.stringify(state));
             }
-            return this.defaultState;
+            return state;
         }
 
         return ((this.mapping[action.type] || {}).reducerAction || (() => {}))(state, action) || state;
@@ -160,55 +160,17 @@ class ReduxStructureContainer {
      * @memberof ReduxStructureContainer
      */
     reducer(state, action){
-        // TODO: Reducer not calculated correctly
 
         const slicesReducer = {};
         Object.keys(this.slices).forEach(childName => {
-            slicesReducer[childName] = this.slices[childName].reducer.bind(this);
+            slicesReducer[childName] = this.slices[childName].reducer.bind(this.slices[childName]);
         }, this);
 
-        // console.log(this.name, new Date().getTime(), action.type, 'sliceReducer', JSON.stringify(slicesReducer), new Error().stack);
-
-        const slicesKeys = Object.keys(slicesReducer);
-        const slicesLength = slicesKeys.length;
-        let reducer;
-
-        if(slicesLength === 1){
-            const slice = this.slices[slicesKeys[0]];
-            const sliceAction = (state, action) => {
-                if(action.type !== slice.actions[slicesKeys[0]]){
-                    return {
-                        [slicesKeys[0]]: slice.defaultState
-                    };
-                }
-
-                return {
-                    [slicesKeys[0]]: slicesReducer[slicesKeys[0]](state, action).bind(this)
-                };
-            };
-
-
-            reducer = Redux.combineReducers({
-                '_self': this.reducerHandler.bind(this),
-                '_slices': sliceAction
-            });
-        } else if (slicesLength > 1) {
-            reducer = Redux.combineReducers({
-                '_self': this.reducerHandler.bind(this),
-                '_slices': Redux.combineReducers(slicesReducer)
-            });
-        } else {
-            // console.log('No slices');
-            // reducer = Redux.combineReducers({
-            //     '_self': this.reducerHandler.bind(this)
-            // });
-
-            reducer = (state, action) => {
-                return {
-                    '_self': this.reducerHandler.call(this, state, action)
-                };
-            };
-        }
+        const reducer = Utils.combineStructureReducers(
+            this.prefix,
+            this.reducerHandler.bind(this),
+            slicesReducer
+        );
 
         return reducer(state || this.defaultState, action);
     }
