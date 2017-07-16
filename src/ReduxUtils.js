@@ -27,7 +27,7 @@ class ReduxUtils {
             }
             
             const type = action.type;
-            const actionPrefix = type.substr(0, type.indexOf(' # ') + 3);
+            const actionPrefix = type.substr(0, type.indexOf(' # '));
             const prefixParts = prefix.substr(0, type.indexOf(' # ')).split(' -> ');
             const actionPrefixParts = actionPrefix.substr(0, type.indexOf(' # ')).split(' -> ');
             

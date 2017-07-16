@@ -34,7 +34,7 @@ class ReduxStructureContainer {
             }
         }
 
-        prefix += this.name + ' # ';
+        prefix += this.name;
         return prefix;
     }
 
@@ -64,7 +64,7 @@ class ReduxStructureContainer {
                 return {};
             }
 
-            return (this.parent.slices[this.name] || {})._self || {};
+            return (this.parent._slices[this.name] || {})._self || {};
         };
 
         this._slicesHandler = () => {
@@ -89,7 +89,7 @@ class ReduxStructureContainer {
                 )
             ;
 
-            const actionName = this.prefix + config.actions[actionKey].actionName;
+            const actionName = this.prefix + ' # ' + config.actions[actionKey].actionName;
             const actionCreator = (...args) => Object.assign({}, {
                 'type': actionName,
                 'payload': config.actions[actionKey].actionCreator.apply(null, args)
