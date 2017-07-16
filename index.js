@@ -1,4 +1,7 @@
+// import {Factory} from './src/ReduxManager';
+const {Factory} = require('./src/ReduxFactory');
 
-import ReduxStructureFactory from 'src/ReduxStructureFactory';
+exports.Factory = Factory;
 
-export default ReduxStructureFactory;
+// const Factory = Factory;
+// export default Factory;
