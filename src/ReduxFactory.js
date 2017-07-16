@@ -63,7 +63,6 @@ class ReduxFactory {
         }
 
         this.updateStore();
-
         return newContainer;
     }
 
