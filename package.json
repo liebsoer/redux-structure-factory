@@ -1,6 +1,6 @@
 {
   "name": "redux-structure-factory",
-  "version": "0.0.1",
+  "version": "0.2.0-beta",
   "description": "Factory module to create a redux structure",
   "main": "index.js",
   "directories": {
