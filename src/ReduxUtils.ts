@@ -3,20 +3,20 @@ import { cloneDeep } from 'lodash';
 
 class ReduxUtils {
 
-    static combineStructureReducers(prefix: string, selfReducer: Function, slicesReducer: object){
+    static combineStructureReducers(prefix: string, selfReducer: Function, slicesReducer: any){
         const fallbackState = {
             '_self': {},
             '_slices': {}
         };
         return (state = fallbackState, action: Action) => {
-            const newState = cloneDeep(state);
+            const newState: any = cloneDeep(state);
 
             if(!action || !action.type){
                 return newState;
             }
 
             if(action.type === '@@redux/INIT'){
-                const initState = {};
+                const initState: any = {};
                 initState._self = selfReducer(newState._self, action);
                 initState._slices = {};
 
