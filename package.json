@@ -1,12 +1,13 @@
 {
   "name": "redux-structure-factory",
-  "version": "0.2.0-beta",
+  "version": "0.3.0-beta",
   "description": "Factory module to create a redux structure",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "build": "tsc",
     "test": "node index.js"
   },
   "repository": {
@@ -23,7 +24,8 @@
     "action",
     "state",
     "state filter",
-    "action creator"
+    "action creator",
+    "typescript"
   ],
   "author": "Sören Liebich",
   "license": "MIT",
@@ -32,6 +34,8 @@
   },
   "homepage": "https://github.com/liebsoer/redux-structure-factory#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.74",
+    "@types/node": "^8.0.31",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
     "babel-polyfill": "^6.23.0",
@@ -42,9 +46,13 @@
     "eslint-plugin-node": "^4.2.2",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
+    "tslint-eslint-rules": "^4.1.1",
+    "typescript": "^2.5.2",
+    "vrsource-tslint-rules": "^5.1.1",
     "webpack": "^2.5.1"
   },
   "dependencies": {
+    "@types/redux": "^3.6.0",
     "lodash": "^4.17.4",
     "redux": "^3.6.0"
   }
